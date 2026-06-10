@@ -27,8 +27,14 @@ form.addEventListener('submit', async (e) => {
             return;
         }
 
+        localStorage.setItem(
+          "userId",
+          data.user.id
+        );
+
         alert(data.message);
         form.reset();
+        window.location.href = "../pages/dashboard.html";
     } catch (error) {
         console.log(error);
         alert('Unable to connect to server');

@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
 const signup = async (req, res) => {
@@ -22,15 +23,21 @@ const signup = async (req, res) => {
             })
         }
 
+        const hashedPassword = await bcrypt.hash(password, 10);
+
         const user = await User.create({
             name,
             email,
-            password,
+            password: hashedPassword,
         }) 
         res.status(201).json({
             success: true,
             message: "User registered successfully",
-            user
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email
+            }
         })
 } catch (error) {
     console.log(error);
@@ -62,7 +69,9 @@ const login = async (req, res) => {
                 message: 'User does not exist'
             })
         }
-        if(user.password !== password) {
+
+        const isPasswordCorrect = await bcrypt.compare(password, user.password)
+        if(!isPasswordCorrect) {
             return res.status(401).json({
                 success: false,
                 message: 'Invalid credentials'
@@ -72,7 +81,11 @@ const login = async (req, res) => {
         res.status(200).json({
             success: true,
             message: 'Login successful',
-            user
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email
+            }
         })
     } catch (error) {
         console.log(error);

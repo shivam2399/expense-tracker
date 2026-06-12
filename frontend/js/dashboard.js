@@ -153,4 +153,82 @@ expensesList.addEventListener('click', async (e) => {
     }
 });
 
+const showLeaderboard = async () => {
+    const leaderboardSection = document.getElementById('leaderboard-section');
+    const leaderboardList = document.getElementById('leaderboard-list');
+
+    if (!leaderboardSection || !leaderboardList) return;
+
+    try {
+        const response = await fetch('http://localhost:5000/api/premium/leaderboard');
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            leaderboardSection.style.display = 'block';
+
+            const fragment = document.createDocumentFragment();
+            data.leaderboard.forEach((user, index) => {
+                const row = document.createElement('div');
+                row.className = 'leaderboard-row';
+
+                if (index === 0) row.classList.add('rank-first');
+                else if (index === 1) row.classList.add('rank-second');
+                else if (index === 2) row.classList.add('rank-third');
+
+                row.innerHTML = `
+                    <span class="rank-num">${index + 1}</span>
+                    <span class="rank-name">${user.name}</span>
+                    <span class="rank-amount">Rs. ${Number(user.totalExpense).toFixed(2)}</span>
+                `;
+                fragment.appendChild(row);
+            });
+
+            leaderboardList.innerHTML = '';
+            leaderboardList.appendChild(fragment);
+        }
+    } catch (error) {
+        console.error('Error loading leaderboard:', error);
+    }
+};
+
+const checkPremiumStatus = async () => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
+
+    try {
+        const response = await fetch(`http://localhost:5000/api/auth/user/${userId}`);
+        const data = await response.json();
+
+        if (response.ok && data.success && data.user.isPremiumUser) {
+            const renderBtn = document.getElementById("renderBtn");
+            if (renderBtn) {
+                const premiumBadge = document.createElement("span");
+                premiumBadge.className = "premium-badge";
+                premiumBadge.textContent = "You are a premium user";
+                renderBtn.parentNode.replaceChild(premiumBadge, renderBtn);
+            }
+            
+            const leaderboardBtn = document.getElementById("leaderboardBtn");
+            if (leaderboardBtn) {
+                leaderboardBtn.style.display = "inline-flex";
+                leaderboardBtn.addEventListener("click", () => {
+                    const leaderboardSection = document.getElementById("leaderboard-section");
+                    if (leaderboardSection) {
+                        if (leaderboardSection.style.display === "none") {
+                            showLeaderboard();
+                            leaderboardBtn.textContent = "Hide Leaderboard";
+                        } else {
+                            leaderboardSection.style.display = "none";
+                            leaderboardBtn.textContent = "Show Leaderboard";
+                        }
+                    }
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error checking premium status:', error);
+    }
+};
+
 loadExpenses();
+checkPremiumStatus();

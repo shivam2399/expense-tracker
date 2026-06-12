@@ -14,6 +14,7 @@ app.use(express.json());
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/expenses', require('./routes/expenseRoutes'));
 app.use('/api/payments', require('./routes/paymentRoutes'));
+app.use('/api/premium', require('./routes/premiumRoutes'));
 
 sequelize
    .sync()

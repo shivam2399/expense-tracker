@@ -84,7 +84,8 @@ const login = async (req, res) => {
             user: {
                 id: user.id,
                 name: user.name,
-                email: user.email
+                email: user.email,
+                isPremiumUser: user.isPremiumUser
             }
         })
     } catch (error) {
@@ -96,7 +97,38 @@ const login = async (req, res) => {
     }
 }
 
+const getUserStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findByPk(id);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                isPremiumUser: user.isPremiumUser
+            }
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            success: false,
+            message: 'Server Error'
+        });
+    }
+};
+
 module.exports = {
     signup,
-    login
+    login,
+    getUserStatus
 }

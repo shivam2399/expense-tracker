@@ -22,6 +22,14 @@ const Payment = sequelize.define('Payment', {
     paymentStatus: {
         type: DataTypes.STRING,
         allowNull: false
+    },
+    userId: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    frontendUrl: {
+        type: DataTypes.STRING,
+        allowNull: false
     }
 }, {
     timestamps: true

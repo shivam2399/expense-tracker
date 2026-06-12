@@ -11,11 +11,22 @@
     <div class="dashboard">
 
   <header class="dashboard-header">
-    <div>
-      <p class="eyebrow">Dashboard</p>
-      <h1>Expense Tracker</h1>
-    </div>
-  </header>
+  <div>
+    <p class="eyebrow">Dashboard</p>
+    <h1>Expense Tracker</h1>
+  </div>
+
+  <div class="header-actions" style="display: flex; gap: 12px; align-items: center;">
+    <button id="leaderboardBtn" class="leaderboard-btn" style="display: none;">
+      Show Leaderboard
+    </button>
+    <button id="renderBtn" class="premium-btn">
+      Buy Premium
+    </button>
+  </div>
+</header>
+
+<div id="cf_checkout"></div>
 
   <form id="expense-form">
 
@@ -56,14 +67,19 @@
 
   </form>
 
-  <div class="card">
-      <h3>Click below to open the checkout page in current tab</h3>
-      <button id="renderBtn">Pay Now</button>
-
-      <div id="cf_checkout"></div>
-  </div>
+  
 
   <div id="expense-list"></div>
+
+  <div id="leaderboard-section" class="leaderboard-section" style="display: none;">
+      <h2>👑 Leaderboard</h2>
+      <div class="leaderboard-header-row">
+          <span>Rank</span>
+          <span>Name</span>
+          <span>Total Expense</span>
+      </div>
+      <div id="leaderboard-list"></div>
+  </div>
 
 </div>
 

@@ -2,15 +2,22 @@ const {
     createOrder,
     getPaymentStatus
 } = require('../services/cashFreeServices');
-const Payment = require('../models/paymentModel');
-
-
+const { Payment, User } = require('../models');
 
 exports.processPayment = async (req, res) => {
+    const { userId, frontendUrl } = req.body;
+
+    if (!userId || !frontendUrl) {
+        return res.status(400).json({
+            success: false,
+            message: 'userId and frontendUrl are required'
+        });
+    }
+
     const orderId = 'ORDER-' + Date.now();
     const orderAmount = 2000;
     const orderCurrency = 'INR';
-    const customerId = '1';
+    const customerId = String(userId);
     const customerPhone = '9999999999';
 
     try {
@@ -27,7 +34,9 @@ exports.processPayment = async (req, res) => {
             paymentSessionId,
             orderAmount,
             orderCurrency,
-            paymentStatus: 'Pending'
+            paymentStatus: 'Pending',
+            userId,
+            frontendUrl
         });
 
         res.json({ paymentSessionId, orderId });
@@ -59,10 +68,16 @@ exports.getPaymentStatus = async (req, res) => {
         order.paymentStatus = orderStatus;
         await order.save();
 
-        res.json({
-            success: true,
-            orderStatus
-        })
+        if (orderStatus === 'Success') {
+            const user = await User.findByPk(order.userId);
+            if (user) {
+                user.isPremiumUser = true;
+                await user.save();
+            }
+        }
+
+        // Redirect user back to the frontend page
+        res.redirect(order.frontendUrl);
     } catch (error) {
         console.error('Error fetching payment status', error.message)
         res.status(500).json({

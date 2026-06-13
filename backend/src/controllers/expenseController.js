@@ -1,4 +1,5 @@
 const Expense = require('../models/Expense');
+const User = require('../models/User');
 
 const addExpense = async (req, res) => {
     try {
@@ -30,12 +31,13 @@ const addExpense = async (req, res) => {
             userId
         })
 
+        // Atomically increment the user's pre-computed totalExpense column
+        await User.increment('totalExpense', { by: amount, where: { id: userId } });
+
         res.status(201).json({
             success: true,
             expense
         })
-
-
     } catch (error) {
         console.log(error);
         res.status(500).json({
@@ -79,18 +81,29 @@ const deleteExpense = async (req, res) => {
             })
         }
 
-        const deletedExpense = await Expense.destroy({
-            where: {
-                id,
-                userId
-            }
-        })
+        // 1. Find the expense first to get its amount
+        const expense = await Expense.findOne({
+            where: { id, userId }
+        });
 
-        if (!deletedExpense) {
+        if (!expense) {
             return res.status(404).json({
                 success: false,
                 message: 'Expense not found'
             })
+        }
+
+        const amount = expense.amount;
+
+        
+        await expense.destroy();
+        await User.decrement('totalExpense', { by: amount, where: { id: userId } });
+
+        // Safeguard: Ensure totalExpense never falls below 0
+        const user = await User.findByPk(userId);
+        if (user && Number(user.totalExpense) < 0) {
+            user.totalExpense = 0;
+            await user.save();
         }
 
         res.status(200).json({

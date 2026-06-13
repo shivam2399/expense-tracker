@@ -1,27 +1,11 @@
-const { User, Expense } = require('../models');
-const sequelize = require('../config/db');
+const { User } = require('../models');
 
 exports.getLeaderboard = async (req, res) => {
     try {
+        // Fetch only user ID, name, and pre-computed totalExpense directly, sorted from highest to lowest
         const leaderboard = await User.findAll({
-            attributes: [
-                'id',
-                'name',
-                [
-                    sequelize.fn(
-                        'COALESCE',
-                        sequelize.fn('SUM', sequelize.col('Expenses.amount')),
-                        0
-                    ),
-                    'totalExpense'
-                ]
-            ],
-            include: [{
-                model: Expense,
-                attributes: [] // Keep results lightweight (exclude individual expense fields)
-            }],
-            group: ['User.id'],
-            order: [[sequelize.literal('totalExpense'), 'DESC']]
+            attributes: ['id', 'name', 'totalExpense'],
+            order: [['totalExpense', 'DESC']]
         });
 
         res.status(200).json({
@@ -29,7 +13,7 @@ exports.getLeaderboard = async (req, res) => {
             leaderboard
         });
     } catch (error) {
-        console.error('Leaderboard optimized error:', error);
+        console.error('Leaderboard error:', error);
         res.status(500).json({
             success: false,
             message: 'Server Error'

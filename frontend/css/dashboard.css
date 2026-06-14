@@ -490,3 +490,29 @@ body {
   font-weight: 700;
   color: var(--text);
 }
+
+/* Limit Selector Styles */
+.limit-selector-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-weight: 700;
+  margin-left: 16px;
+}
+
+.page-limit-select {
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fbfcfe;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+}
+
+.page-limit-select:focus {
+  border-color: var(--primary);
+}

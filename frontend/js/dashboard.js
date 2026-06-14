@@ -5,6 +5,7 @@ let currentFilter = 'all';
 let currentExpenses = [];
 let currentPage = 1;
 let totalPages = 1;
+let currentPageLimit = parseInt(localStorage.getItem('expensePageLimit'), 10) || 10;
 
 const renderPaginationControls = () => {
     const paginationContainer = document.getElementById('pagination-controls');
@@ -43,7 +44,42 @@ const renderPaginationControls = () => {
         }
     });
 
-    paginationContainer.append(prevBtn, pageInfo, nextBtn);
+    const limitSelectorGroup = document.createElement('div');
+    limitSelectorGroup.className = 'limit-selector-group';
+
+    const limitLabel = document.createElement('label');
+    limitLabel.setAttribute('for', 'page-limit-select');
+    limitLabel.textContent = 'Show ';
+
+    const limitSelect = document.createElement('select');
+    limitSelect.id = 'page-limit-select';
+    limitSelect.className = 'page-limit-select';
+
+    const limitOptions = [5, 10, 20, 30, 40];
+    limitOptions.forEach(optVal => {
+        const option = document.createElement('option');
+        option.value = optVal;
+        option.textContent = optVal;
+        if (optVal === currentPageLimit) {
+            option.selected = true;
+        }
+        limitSelect.appendChild(option);
+    });
+
+    limitSelect.addEventListener('change', async (e) => {
+        const newLimit = parseInt(e.target.value, 10);
+        currentPageLimit = newLimit;
+        localStorage.setItem('expensePageLimit', newLimit);
+        currentPage = 1;
+        await loadExpenses();
+    });
+
+    const limitSuffix = document.createElement('span');
+    limitSuffix.textContent = ' per page';
+
+    limitSelectorGroup.append(limitLabel, limitSelect, limitSuffix);
+
+    paginationContainer.append(prevBtn, pageInfo, nextBtn, limitSelectorGroup);
 };
 
 const downloadCSV = async () => {
@@ -130,7 +166,7 @@ const loadExpenses = async () => {
     }
 
     try {
-        let queryParams = [`page=${currentPage}`];
+        let queryParams = [`page=${currentPage}`, `limit=${currentPageLimit}`];
         if (currentFilter && currentFilter !== 'all') {
             queryParams.push(`filter=${currentFilter}`);
         }

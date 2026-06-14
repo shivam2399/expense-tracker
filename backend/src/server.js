@@ -20,20 +20,6 @@ sequelize
    .sync()
    .then(async () => {
     console.log('Database connected and synced');
-    
-    // // Self-healing database check: Recalculate totalExpense to fix negative or desynced historical values
-    // try {
-    //     const { User, Expense } = require('./models');
-    //     const users = await User.findAll();
-    //     for (let user of users) {
-    //         const total = await Expense.sum('amount', { where: { userId: user.id } }) || 0;
-    //         user.totalExpense = total;
-    //         await user.save();
-    //     }
-    //     console.log('User totalExpense columns successfully recalculated and synced');
-    // } catch (err) {
-    //     console.error('Error self-healing totalExpense:', err);
-    // }
 
     app.listen(process.env.PORT, () => {
         console.log(

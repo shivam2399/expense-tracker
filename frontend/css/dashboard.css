@@ -444,3 +444,49 @@ body {
 .amount.expense-amount {
   color: #b42318; /* Red for Expense */
 }
+
+/* Pagination Controls */
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  padding: 12px 18px;
+  background: var(--panel);
+  border: 1px solid rgba(217, 224, 234, 0.8);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(23, 32, 51, 0.02);
+}
+
+.page-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fbfcfe;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  color: var(--text);
+  border-color: #cbd5e1;
+}
+
+.page-btn:disabled {
+  background: #f1f5f9;
+  color: #cbd5e1;
+  border-color: var(--line);
+  cursor: not-allowed;
+}
+
+.page-info {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}

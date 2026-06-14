@@ -18,7 +18,7 @@ app.use('/api/premium', require('./routes/premiumRoutes'));
 app.use('/password', require('./routes/passwordRoutes'));
 
 sequelize
-   .sync({ alter: true })
+   .sync()
    .then(async () => {
     console.log('Database connected and synced');
 

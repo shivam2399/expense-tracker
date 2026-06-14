@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "test-db": "node C:/Users/shiva/.gemini/antigravity/brain/3b5d2a40-e54d-4a67-aeee-f1286c663510/scratch/test_query.js"
+    "dev": "nodemon src/server.js"
   },
   "keywords": [],
   "author": "",

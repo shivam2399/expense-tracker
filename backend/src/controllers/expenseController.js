@@ -64,7 +64,7 @@ const addExpense = async (req, res) => {
 const getExpenses = async (req, res) => {
     try {
         const { userId } = req.params;
-        const { filter } = req.query;
+        const { filter, page, limit, download } = req.query;
 
         let whereClause = { userId };
 
@@ -82,15 +82,35 @@ const getExpenses = async (req, res) => {
             whereClause.createdAt = { [Op.gte]: oneMonthAgo };
         }
 
-        const expenses = await Expense.findAll({
+        if (download === 'true') {
+            const expenses = await Expense.findAll({
+                where: whereClause,
+                order: [['createdAt', 'DESC']]
+            });
+            return res.status(200).json({
+                success: true,
+                expenses
+            });
+        }
+
+        const parsedPage = parseInt(page, 10) || 1;
+        const parsedLimit = parseInt(limit, 10) || 10;
+        const offset = (parsedPage - 1) * parsedLimit;
+
+        const { count, rows: expenses } = await Expense.findAndCountAll({
             where: whereClause,
-            order: [['createdAt', 'DESC']]
-        })
+            order: [['createdAt', 'DESC']],
+            limit: parsedLimit,
+            offset
+        });
 
         res.status(200).json({
             success: true,
-            expenses
-        })
+            expenses,
+            totalCount: count,
+            currentPage: parsedPage,
+            totalPages: Math.ceil(count / parsedLimit)
+        });
     } catch (error) {
         console.log(error);
         res.status(500).json({

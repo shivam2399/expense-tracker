@@ -3,6 +3,100 @@ const expensesList = document.querySelector('#expense-list');
 
 let currentFilter = 'all';
 let currentExpenses = [];
+let currentPage = 1;
+let totalPages = 1;
+
+const renderPaginationControls = () => {
+    const paginationContainer = document.getElementById('pagination-controls');
+    if (!paginationContainer) return;
+
+    if (totalPages <= 1 && currentExpenses.length === 0) {
+        paginationContainer.innerHTML = '';
+        return;
+    }
+
+    paginationContainer.innerHTML = '';
+
+    const prevBtn = document.createElement('button');
+    prevBtn.className = 'page-btn';
+    prevBtn.textContent = 'Previous';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.addEventListener('click', async () => {
+        if (currentPage > 1) {
+            currentPage--;
+            await loadExpenses();
+        }
+    });
+
+    const pageInfo = document.createElement('span');
+    pageInfo.className = 'page-info';
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+
+    const nextBtn = document.createElement('button');
+    nextBtn.className = 'page-btn';
+    nextBtn.textContent = 'Next';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.addEventListener('click', async () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            await loadExpenses();
+        }
+    });
+
+    paginationContainer.append(prevBtn, pageInfo, nextBtn);
+};
+
+const downloadCSV = async () => {
+    const userId = localStorage.getItem('userId');
+    if (!userId) return;
+
+    try {
+        let url = `http://localhost:5000/api/expenses/${userId}?download=true`;
+        if (currentFilter && currentFilter !== 'all') {
+            url += `&filter=${currentFilter}`;
+        }
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            alert(data.message || 'Unable to download report');
+            return;
+        }
+
+        const allExpenses = data.expenses || [];
+        if (!allExpenses.length) {
+            alert('No data available to download');
+            return;
+        }
+
+        const headers = ['Date', 'Type', 'Category', 'Description', 'Amount (Rs.)'];
+        const rows = allExpenses.map(expense => [
+            new Date(expense.createdAt).toLocaleDateString(),
+            expense.type.toUpperCase(),
+            expense.category,
+            expense.description,
+            Number(expense.amount).toFixed(2)
+        ]);
+
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', downloadUrl);
+        link.setAttribute('download', `expense_report_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (error) {
+        console.error('Error downloading CSV:', error);
+        alert('Failed to connect to server');
+    }
+};
 
 const updateCategoryOptions = (type) => {
     const categorySelect = document.querySelector('#category');
@@ -27,37 +121,6 @@ const updateCategoryOptions = (type) => {
     }
 };
 
-const downloadCSV = () => {
-    if (!currentExpenses || !currentExpenses.length) {
-        alert('No data available to download');
-        return;
-    }
-
-    const headers = ['Date', 'Type', 'Category', 'Description', 'Amount (Rs.)'];
-    const rows = currentExpenses.map(expense => [
-        new Date(expense.createdAt).toLocaleDateString(),
-        expense.type.toUpperCase(),
-        expense.category,
-        expense.description,
-        Number(expense.amount).toFixed(2)
-    ]);
-
-    const csvContent = [
-        headers.join(','),
-        ...rows.map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `expense_report_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-};
-
 const loadExpenses = async () => {
     const userId = localStorage.getItem('userId');
 
@@ -67,10 +130,11 @@ const loadExpenses = async () => {
     }
 
     try {
-        let url = `http://localhost:5000/api/expenses/${userId}`;
+        let queryParams = [`page=${currentPage}`];
         if (currentFilter && currentFilter !== 'all') {
-            url += `?filter=${currentFilter}`;
+            queryParams.push(`filter=${currentFilter}`);
         }
+        const url = `http://localhost:5000/api/expenses/${userId}?${queryParams.join('&')}`;
         const response = await fetch(url);
         const data = await response.json();
 
@@ -80,9 +144,17 @@ const loadExpenses = async () => {
         }
 
         currentExpenses = data.expenses || [];
+        totalPages = data.totalPages || 1;
+
+        if (!currentExpenses.length && currentPage > 1) {
+            currentPage = totalPages;
+            await loadExpenses();
+            return;
+        }
 
         if (!currentExpenses.length) {
             expensesList.innerHTML = '<p class="empty-state">No expenses yet. Add your first one above.</p>';
+            renderPaginationControls();
             return;
         }
 
@@ -129,6 +201,8 @@ const loadExpenses = async () => {
             expenseItem.append(expenseLeft, expenseRight, deleteButton);
             expensesList.appendChild(expenseItem);
         });
+
+        renderPaginationControls();
     } catch (error) {
         console.log(error);
         alert('Unable to connect to server');
@@ -173,6 +247,7 @@ form.addEventListener('submit', async (e) => {
 
         form.reset();
         updateCategoryOptions('expense');
+        currentPage = 1;
         await loadExpenses();
     } catch (error) {
         console.log(error);
@@ -331,6 +406,7 @@ const checkPremiumStatus = async () => {
                     filterButtons.forEach(b => b.classList.remove("active"));
                     e.target.classList.add("active");
                     currentFilter = e.target.dataset.filter;
+                    currentPage = 1;
                     await loadExpenses();
                 });
             });

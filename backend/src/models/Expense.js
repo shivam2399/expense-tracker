@@ -18,13 +18,13 @@ const Expense = sequelize.define(
             allowNull: false,
         },
         category: {
-            type: DataTypes.ENUM(
-                'Food',
-                'Travel',
-                'Shopping',
-                'Others'
-            ),
+            type: DataTypes.STRING,
             allowNull: false,
+        },
+        type: {
+            type: DataTypes.ENUM('expense', 'income'),
+            defaultValue: 'expense',
+            allowNull: false
         }
     },
     {

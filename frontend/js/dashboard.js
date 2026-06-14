@@ -1,6 +1,63 @@
 const form = document.querySelector('#expense-form');
 const expensesList = document.querySelector('#expense-list');
 
+let currentFilter = 'all';
+let currentExpenses = [];
+
+const updateCategoryOptions = (type) => {
+    const categorySelect = document.querySelector('#category');
+    if (!categorySelect) return;
+
+    const currentValue = categorySelect.value;
+    categorySelect.innerHTML = '<option value="">Select Category</option>';
+
+    const categories = type === 'income' 
+        ? ['Salary', 'Freelance', 'Investment', 'Others']
+        : ['Food', 'Travel', 'Shopping', 'Others'];
+
+    categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        categorySelect.appendChild(opt);
+    });
+
+    if (categories.includes(currentValue)) {
+        categorySelect.value = currentValue;
+    }
+};
+
+const downloadCSV = () => {
+    if (!currentExpenses || !currentExpenses.length) {
+        alert('No data available to download');
+        return;
+    }
+
+    const headers = ['Date', 'Type', 'Category', 'Description', 'Amount (Rs.)'];
+    const rows = currentExpenses.map(expense => [
+        new Date(expense.createdAt).toLocaleDateString(),
+        expense.type.toUpperCase(),
+        expense.category,
+        expense.description,
+        Number(expense.amount).toFixed(2)
+    ]);
+
+    const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(val => `"${val.replace(/"/g, '""')}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `expense_report_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+};
+
 const loadExpenses = async () => {
     const userId = localStorage.getItem('userId');
 
@@ -10,7 +67,11 @@ const loadExpenses = async () => {
     }
 
     try {
-        const response = await fetch(`http://localhost:5000/api/expenses/${userId}`);
+        let url = `http://localhost:5000/api/expenses/${userId}`;
+        if (currentFilter && currentFilter !== 'all') {
+            url += `?filter=${currentFilter}`;
+        }
+        const response = await fetch(url);
         const data = await response.json();
 
         if (!response.ok) {
@@ -18,14 +79,16 @@ const loadExpenses = async () => {
             return;
         }
 
-        if (!data.expenses.length) {
+        currentExpenses = data.expenses || [];
+
+        if (!currentExpenses.length) {
             expensesList.innerHTML = '<p class="empty-state">No expenses yet. Add your first one above.</p>';
             return;
         }
 
         expensesList.innerHTML = '';
 
-        data.expenses.forEach(expense => {
+        currentExpenses.forEach(expense => {
             const expenseItem = document.createElement('div');
             expenseItem.className = 'expense-item';
 
@@ -43,7 +106,13 @@ const loadExpenses = async () => {
 
             const amount = document.createElement('p');
             amount.className = 'amount';
-            amount.textContent = `Rs. ${Number(expense.amount).toFixed(2)}`;
+            if (expense.type === 'income') {
+                amount.textContent = `+ Rs. ${Number(expense.amount).toFixed(2)}`;
+                amount.classList.add('income-amount');
+            } else {
+                amount.textContent = `- Rs. ${Number(expense.amount).toFixed(2)}`;
+                amount.classList.add('expense-amount');
+            }
 
             const category = document.createElement('p');
             category.className = 'category';
@@ -72,6 +141,7 @@ form.addEventListener('submit', async (e) => {
     const amount = document.querySelector('#amount').value.trim();
     const description = document.querySelector('#description').value.trim();
     const category = document.querySelector('#category').value.trim();
+    const type = document.querySelector('#type') ? document.querySelector('#type').value : 'expense';
     const userId = localStorage.getItem('userId');
 
     if (!amount || !description || !category || !userId) {
@@ -89,7 +159,8 @@ form.addEventListener('submit', async (e) => {
                 amount,
                 description,
                 category,
-                userId
+                userId,
+                type
             })
         });
 
@@ -101,6 +172,7 @@ form.addEventListener('submit', async (e) => {
         }
 
         form.reset();
+        updateCategoryOptions('expense');
         await loadExpenses();
     } catch (error) {
         console.log(error);
@@ -224,11 +296,72 @@ const checkPremiumStatus = async () => {
                     }
                 });
             }
+
+            // --- PREMIUM USER SPECIFIC UI SETUP ---
+            const typeField = document.getElementById("typeField");
+            if (typeField) {
+                typeField.style.display = "block";
+            }
+            const expenseForm = document.getElementById("expense-form");
+            if (expenseForm) {
+                expenseForm.classList.add("premium-form");
+            }
+
+            const premiumReportsBar = document.getElementById("premiumReportsBar");
+            if (premiumReportsBar) {
+                premiumReportsBar.style.display = "flex";
+            }
+            const filterGroup = document.querySelector(".filter-group");
+            if (filterGroup) {
+                filterGroup.style.display = "flex";
+            }
+
+            const downloadBtn = document.getElementById("downloadBtn");
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.textContent = "Download Report";
+                downloadBtn.replaceWith(downloadBtn.cloneNode(true));
+                const newDownloadBtn = document.getElementById("downloadBtn");
+                newDownloadBtn.addEventListener("click", downloadCSV);
+            }
+
+            const filterButtons = document.querySelectorAll(".filter-btn");
+            filterButtons.forEach(btn => {
+                btn.addEventListener("click", async (e) => {
+                    filterButtons.forEach(b => b.classList.remove("active"));
+                    e.target.classList.add("active");
+                    currentFilter = e.target.dataset.filter;
+                    await loadExpenses();
+                });
+            });
+        } else {
+            // Standard User Configuration
+            const premiumReportsBar = document.getElementById("premiumReportsBar");
+            if (premiumReportsBar) {
+                premiumReportsBar.style.display = "flex";
+            }
+            const filterGroup = document.querySelector(".filter-group");
+            if (filterGroup) {
+                filterGroup.style.display = "none";
+            }
+            const downloadBtn = document.getElementById("downloadBtn");
+            if (downloadBtn) {
+                downloadBtn.disabled = true;
+                downloadBtn.textContent = "Download (Premium Only)";
+            }
         }
     } catch (error) {
         console.error('Error checking premium status:', error);
     }
 };
 
+const typeSelector = document.querySelector('#type');
+if (typeSelector) {
+    typeSelector.addEventListener('change', (e) => {
+        updateCategoryOptions(e.target.value);
+    });
+}
+
+updateCategoryOptions('expense');
 loadExpenses();
 checkPremiumStatus();

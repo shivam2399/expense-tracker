@@ -362,3 +362,85 @@ body {
 .leaderboard-btn:active {
   transform: translateY(0);
 }
+
+/* Premium Form Styling */
+#expense-form.premium-form {
+  grid-template-columns: minmax(110px, 0.6fr) minmax(120px, 0.8fr) minmax(200px, 1.4fr) minmax(140px, 0.9fr) auto;
+}
+
+/* Premium Reports & Downloader */
+.premium-reports-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 14px 18px;
+  background: var(--panel);
+  border: 1px solid rgba(217, 224, 234, 0.8);
+  border-radius: 8px;
+  box-shadow: 0 8px 22px rgba(23, 32, 51, 0.04);
+}
+
+.filter-group {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fbfcfe;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  background: #f1f5f9;
+  color: var(--text);
+}
+
+.filter-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.download-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #d4af37, #f9d976);
+  color: #172033;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto; /* Push to right when filter-group is hidden */
+}
+
+.download-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.2);
+}
+
+.download-btn:disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Transaction Amount Indicators */
+.amount.income-amount {
+  color: #059669; /* Green for Income */
+}
+
+.amount.expense-amount {
+  color: #b42318; /* Red for Expense */
+}

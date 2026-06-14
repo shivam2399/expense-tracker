@@ -30,6 +30,14 @@
 
   <form id="expense-form">
 
+    <div class="field" id="typeField" style="display: none;">
+      <label for="type">Type</label>
+      <select id="type">
+        <option value="expense">Expense</option>
+        <option value="income">Income</option>
+      </select>
+    </div>
+
     <div class="field">
       <label for="amount">Amount</label>
       <input
@@ -61,13 +69,21 @@
       </select>
     </div>
 
-    <button type="submit">
+    <button type="submit" id="addBtn">
       Add Expense
     </button>
 
   </form>
 
-  
+  <div id="premiumReportsBar" class="premium-reports-bar" style="display: none;">
+      <div class="filter-group">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="daily">Daily</button>
+          <button class="filter-btn" data-filter="weekly">Weekly</button>
+          <button class="filter-btn" data-filter="monthly">Monthly</button>
+      </div>
+      <button id="downloadBtn" class="download-btn" disabled>Download (Premium Only)</button>
+  </div>
 
   <div id="expense-list"></div>
 

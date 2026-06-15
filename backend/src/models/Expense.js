@@ -25,6 +25,10 @@ const Expense = sequelize.define(
             type: DataTypes.ENUM('expense', 'income'),
             defaultValue: 'expense',
             allowNull: false
+        },
+        note: {
+            type: DataTypes.STRING,
+            allowNull: true
         }
     },
     {

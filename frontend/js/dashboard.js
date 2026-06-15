@@ -105,12 +105,13 @@ const downloadCSV = async () => {
             return;
         }
 
-        const headers = ['Date', 'Type', 'Category', 'Description', 'Amount (Rs.)'];
+        const headers = ['Date', 'Type', 'Category', 'Description', 'Note', 'Amount (Rs.)'];
         const rows = allExpenses.map(expense => [
             new Date(expense.createdAt).toLocaleDateString(),
             expense.type.toUpperCase(),
             expense.category,
             expense.description,
+            expense.note || '',
             Number(expense.amount).toFixed(2)
         ]);
 
@@ -232,7 +233,15 @@ const loadExpenses = async () => {
             deleteButton.dataset.id = expense.id;
             deleteButton.textContent = 'Delete';
 
-            expenseLeft.append(description, createdAt);
+            if (expense.note) {
+                const noteEl = document.createElement('p');
+                noteEl.className = 'expense-note';
+                noteEl.textContent = `Note: ${expense.note}`;
+                expenseLeft.append(description, noteEl, createdAt);
+            } else {
+                expenseLeft.append(description, createdAt);
+            }
+
             expenseRight.append(amount, category);
             expenseItem.append(expenseLeft, expenseRight, deleteButton);
             expensesList.appendChild(expenseItem);
@@ -251,6 +260,7 @@ form.addEventListener('submit', async (e) => {
     const amount = document.querySelector('#amount').value.trim();
     const description = document.querySelector('#description').value.trim();
     const category = document.querySelector('#category').value.trim();
+    const note = document.querySelector('#note') ? document.querySelector('#note').value.trim() : '';
     const type = document.querySelector('#type') ? document.querySelector('#type').value : 'expense';
     const userId = localStorage.getItem('userId');
 
@@ -270,7 +280,8 @@ form.addEventListener('submit', async (e) => {
                 description,
                 category,
                 userId,
-                type
+                type,
+                note
             })
         });
 

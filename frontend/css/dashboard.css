@@ -55,7 +55,7 @@ body {
 
 #expense-form {
   display: grid;
-  grid-template-columns: minmax(150px, 0.8fr) minmax(220px, 1.4fr) minmax(170px, 0.9fr) auto;
+  grid-template-columns: minmax(110px, 0.7fr) minmax(200px, 1.3fr) minmax(140px, 0.9fr) minmax(170px, 1fr) auto;
   gap: 14px;
   align-items: end;
   margin-bottom: 24px;
@@ -365,7 +365,7 @@ body {
 
 /* Premium Form Styling */
 #expense-form.premium-form {
-  grid-template-columns: minmax(110px, 0.6fr) minmax(120px, 0.8fr) minmax(200px, 1.4fr) minmax(140px, 0.9fr) auto;
+  grid-template-columns: minmax(90px, 0.5fr) minmax(110px, 0.6fr) minmax(160px, 1.1fr) minmax(120px, 0.7fr) minmax(140px, 0.8fr) auto;
 }
 
 /* Premium Reports & Downloader */
@@ -515,4 +515,13 @@ body {
 
 .page-limit-select:focus {
   border-color: var(--primary);
+}
+
+/* Note field inside list item */
+.expense-note {
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 2px;
+  margin-bottom: 4px;
 }

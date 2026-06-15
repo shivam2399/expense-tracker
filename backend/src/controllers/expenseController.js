@@ -11,7 +11,8 @@ const addExpense = async (req, res) => {
             description,
             category,
             userId,
-            type // 'expense' or 'income'
+            type, // 'expense' or 'income'
+            note
         } = req.body;
 
         const txType = type || 'expense';
@@ -37,7 +38,8 @@ const addExpense = async (req, res) => {
             description,
             category,
             userId,
-            type: txType
+            type: txType,
+            note
         }, { transaction: t })
 
         // Increment the user's pre-computed totalExpense column ONLY for expenses
